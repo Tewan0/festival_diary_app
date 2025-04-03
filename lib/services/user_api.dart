@@ -5,7 +5,8 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:festival_diary_app/models/user.dart'; //แพ็กเกจที่รวบรวมคำสั่งที่เราใช้ติดต่อ API ที่ Backend Server
-class UserAPI{
+
+class UserAPI {
   //สร้าง object dio เพื่อใช้เป็นตัวที่ติดต่อ API ที่ Backend Server
   final Dio dio = Dio();
 
@@ -17,11 +18,11 @@ class UserAPI{
         'userFullname': user.userFullname,
         'userName': user.userName,
         'userPassword': user.userPassword,
-        if(userFile != null)
-        'userImage': await MultipartFile.fromFile(
-          userFile.path,
-          filename: userFile.path.split('/').last,
-          contentType: DioMediaType('image', userFile.path.split('.').last),
+        if (userFile != null)
+          'userImage': await MultipartFile.fromFile(
+            userFile.path,
+            filename: userFile.path.split('/').last,
+            contentType: DioMediaType('image', userFile.path.split('.').last),
           ),
       });
 
@@ -43,9 +44,27 @@ class UserAPI{
       } else {
         return false;
       }
-    }catch(err){
+    } catch (err) {
       print('Exception: ${err}');
       return false;
+    }
+  }
+
+  //สร้าง method เรียกใช้ API ให้เอาชื่อผู้ใช้และรหัสผ่านมาเช็ค
+  Future<User> checklogin(User user) async {
+    try {
+      final responseData = await dio.get(
+        '${baseUrl}/user/${user.userName}/${user.userPassword}',
+      );
+
+      if (responseData.statusCode == 200) {
+        return User.fromJson(responseData.data['info']);
+      } else {
+        return User();
+      }
+    } catch (err) {
+      print('Exception: ${err}');
+      return User();
     }
   }
 }

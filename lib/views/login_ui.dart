@@ -1,5 +1,7 @@
 // ignore_for_file: sort_child_properties_last
 
+import 'dart:math';
+
 import 'package:festival_diary_app/constants/color_constant.dart';
 import 'package:festival_diary_app/views/register_ui.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +14,25 @@ class LoginUI extends StatefulWidget {
 }
 
 class _LoginUIState extends State<LoginUI> {
+  TextEditingController userNameCtrl = TextEditingController();
+  TextEditingController userPasswordCtrl = TextEditingController();
+
+  bool isShowUserPassword = true;
+
+  showWraningSnakeBar(context, msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Align(
+          child: Text(
+            msg,
+          ),
+        ),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 1),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,7 +65,7 @@ class _LoginUIState extends State<LoginUI> {
                     child: Image.asset(
                       'assets/images/icon.png',
                       width: 120,
-                      ),
+                    ),
                   ),
                   SizedBox(height: 50.0),
                   Align(
@@ -53,54 +74,92 @@ class _LoginUIState extends State<LoginUI> {
                   ),
                   SizedBox(height: 10.0),
                   TextField(
+                    controller: userNameCtrl,
                     decoration: InputDecoration(
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide(
                           color: Color(mainColor),
                           width: 2,
-                          ),
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide(
                           color: Color(mainColor),
                           width: 2,
-                          ),
+                        ),
                       ),
                       prefixIcon: Icon(Icons.person),
                     ),
                   ),
                   SizedBox(height: 20.0),
-                  Align(alignment: Alignment.centerLeft, child: Text('รหัสผ่าน')),
+                  Align(
+                      alignment: Alignment.centerLeft, child: Text('รหัสผ่าน')),
                   SizedBox(height: 10.0),
                   TextField(
-                    obscureText: true,
+                    controller: userPasswordCtrl,
+                    obscureText: isShowUserPassword,
                     decoration: InputDecoration(
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide(
                           color: Color(mainColor),
                           width: 2,
-                          ),
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide(
                           color: Color(mainColor),
                           width: 2,
-                          ),
+                        ),
                       ),
                       prefixIcon: Icon(Icons.lock),
                       suffixIcon: IconButton(
-                        icon: Icon(Icons.visibility_off),
-                        onPressed: () {},
+                        icon: isShowUserPassword == true
+                            ? Icon(
+                                Icons.visibility_off,
+                              )
+                            : Icon(
+                                Icons.visibility,
+                              ),
+                        onPressed: () {
+                          setState(() {
+                            isShowUserPassword = !isShowUserPassword;
+                          });
+                        },
                       ),
                     ),
                   ),
                   SizedBox(height: 30.0),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      //Validate UI
+                      if (userNameCtrl.text.length == 0) {
+                        showWraningSnakeBar(context, 'กรุณากรอกชื่อผู้ใช้');
+                      } else if (userPasswordCtrl.text.length == 0) {
+                        showWraningSnakeBar(context, 'กรุณากรอกรหัสผ่าน');
+                      }else {
+                        //ส่งชื่อผู้ใช้และรหัสผ่านไปยัง API เพื่อตรวจสอบ
+                        User user = User(
+                          userName: userNameCtrl.text,
+                          userPassword: userPasswordCtrl.text,
+                        );
+                        //เรียกใช้ checkLogin()
+                        user = await UserAPI().checklogin(user);
+                        if (user.userId != null) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => HomeUI(user: user),
+                            ),
+                          );
+                        }else{
+                          showWraningSnakeBar(context, 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+                        }
+                      }
+                    },
                     child: Text(
                       'เข้าสู่ระบบ',
                       style: TextStyle(
@@ -129,7 +188,8 @@ class _LoginUIState extends State<LoginUI> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => RegisterUI()),
+                            MaterialPageRoute(
+                                builder: (context) => RegisterUI()),
                           );
                         },
                         child: Text(
