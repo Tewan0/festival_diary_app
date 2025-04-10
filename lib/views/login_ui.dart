@@ -3,6 +3,9 @@
 import 'dart:math';
 
 import 'package:festival_diary_app/constants/color_constant.dart';
+import 'package:festival_diary_app/models/user.dart';
+import 'package:festival_diary_app/services/user_api.dart';
+import 'package:festival_diary_app/views/home_ui.dart';
 import 'package:festival_diary_app/views/register_ui.dart';
 import 'package:flutter/material.dart';
 
@@ -134,7 +137,7 @@ class _LoginUIState extends State<LoginUI> {
                   ),
                   SizedBox(height: 30.0),
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       //Validate UI
                       if (userNameCtrl.text.length == 0) {
                         showWraningSnakeBar(context, 'กรุณากรอกชื่อผู้ใช้');

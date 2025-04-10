@@ -4,6 +4,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:festival_diary_app/constants/baseURL_constants.dart';
 import 'package:festival_diary_app/models/user.dart'; //แพ็กเกจที่รวบรวมคำสั่งที่เราใช้ติดต่อ API ที่ Backend Server
 
 class UserAPI {
@@ -54,10 +55,50 @@ class UserAPI {
   Future<User> checklogin(User user) async {
     try {
       final responseData = await dio.get(
-        '${baseUrl}/user/${user.userName}/${user.userPassword}',
+        '${baseURL}/user/${user.userName}/${user.userPassword}',
       );
 
       if (responseData.statusCode == 200) {
+        return User.fromJson(responseData.data['info']);
+      } else {
+        return User();
+      }
+    } catch (err) {
+      print('Exception: ${err}');
+      return User();
+    }
+  }
+
+  //สร้าง method เรียกใช้ API แก้ไขข้อมูลผู้ใช้
+  Future<User> updateUser(User user, File? userFile) async {
+    try {
+      //เอาข้อมูลใส่ FormData
+      final formData = FormData.fromMap({
+        'userFullname': user.userFullname,
+        'userName': user.userName,
+        'userPassword': user.userPassword,
+        if (userFile != null)
+          'userImage': await MultipartFile.fromFile(
+            userFile.path,
+            filename: userFile.path.split('/').last,
+            contentType: DioMediaType('image', userFile.path.split('.').last),
+          ),
+      });
+
+      //เอาข้อมูลใน FormData ส่งไปผ่าน API ตาม Endpoint ที่กำหนดไว้
+      final responseData = await dio.put(
+        '${baseURL}/user/${user.userId}',
+        data: formData,
+        options: Options(
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
+
+      //หลังจากทำงานเสร็จ ณ ที่นี้ตรวจสอบผลการทำงานจาก responseData
+      if (responseData.statusCode == 200) {
+        //แปลว่าแก้ไขสำเร็จ
         return User.fromJson(responseData.data['info']);
       } else {
         return User();
