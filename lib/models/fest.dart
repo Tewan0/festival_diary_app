@@ -23,7 +23,7 @@ class Fest {
     festName = json['festName'];
     festDetail = json['festDetail'];
     festState = json['festState'];
-    festCost = json['festCost'];
+    festCost = double.parse(json['festCost'].toString()).toStringAsFixed(2);
     userId = json['userId'];
     festImage = json['festImage'];
     festNumDay = json['festNumDay'];

@@ -3,9 +3,21 @@
 import 'dart:io';
 
 import 'package:festival_diary_app/constants/color_constant.dart';
+import 'package:festival_diary_app/models/fest.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+class FestAPI {
+  Future<bool> insertFest(Fest fest, File festFile) async {
+    // Simulate a network call
+    await Future.delayed(Duration(seconds: 2));
+    return true; // Simulate success
+  }
+
+  getAllFestByUser(int i) {}
+
+  updateFest(Fest fest, File festFile) {}
+}
 class AddFestUI extends StatefulWidget {
   int? userId;
   AddFestUI({super.key, this.userId});
@@ -14,9 +26,42 @@ class AddFestUI extends StatefulWidget {
   State<AddFestUI> createState() => _AddFestUIState();
 }
 
+
 class _AddFestUIState extends State<AddFestUI> {
+
+  //สร้างตัวควบคุม TextFile
+  TextEditingController festNameCtrl = TextEditingController();
+  TextEditingController festDetailCtrl = TextEditingController();
+  TextEditingController festStateCtrl = TextEditingController();
+  TextEditingController festCostCtrl = TextEditingController();
+  TextEditingController festDayCtrl = TextEditingController();
+
+  showWraningSnakeBar(context, msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Align(alignment: Alignment.center, child: Text(msg)),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  //เมธอดแสดง SnakeBar คำเตือน
+  showCompletegSnakeBar(context, msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Align(alignment: Alignment.center, child: Text(msg)),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   //ตัวแปรเก็บรูปที่ถ่าย
   File? userFile;
+  
+  File get festFile => userFile!;
+  
 
   //method สำหรับเปิดกล้องถ่ายรูป
   Future<void> openCamera() async {
@@ -101,6 +146,7 @@ class _AddFestUIState extends State<AddFestUI> {
                   ),
                   SizedBox(height: 10.0),
                   TextField(
+                    controller: festNameCtrl,
                     decoration: InputDecoration(
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -132,6 +178,7 @@ class _AddFestUIState extends State<AddFestUI> {
                   ),
                   SizedBox(height: 10.0),
                   TextField(
+                    controller: festDetailCtrl,
                     decoration: InputDecoration(
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -163,6 +210,7 @@ class _AddFestUIState extends State<AddFestUI> {
                   ),
                   SizedBox(height: 10.0),
                   TextField(
+                    controller: festStateCtrl,
                     decoration: InputDecoration(
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -194,6 +242,7 @@ class _AddFestUIState extends State<AddFestUI> {
                   ),
                   SizedBox(height: 10.0),
                   TextField(
+                    controller: festCostCtrl,
                     decoration: InputDecoration(
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -225,6 +274,7 @@ class _AddFestUIState extends State<AddFestUI> {
                   ),
                   SizedBox(height: 10.0),
                   TextField(
+                    controller: festDayCtrl,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                       focusedBorder: OutlineInputBorder(
@@ -246,7 +296,45 @@ class _AddFestUIState extends State<AddFestUI> {
                   ),
                   SizedBox(height: 30.0),
                   ElevatedButton(
-                    onPressed: () async {},
+                    onPressed: () async {
+                      //Validate UI
+                      if (festNameCtrl.text.isEmpty) {
+                        showWraningSnakeBar(context, 'กรุณากรอกชื่อ Festival');
+                      } else if (festDetailCtrl.text.isEmpty) {
+                        showWraningSnakeBar(context, 'กรุณากรอกรายละเอียด');
+                      } else if (festStateCtrl.text.isEmpty) {
+                        showWraningSnakeBar(context, 'กรุณากรอกสถานที่จัดงาน');
+                      } else if (festCostCtrl.text.isEmpty) {
+                        showWraningSnakeBar(context, 'กรุณากรอกค่าใช้จ่าย');
+                      } else if (festDayCtrl.text.isEmpty) {
+                        showWraningSnakeBar(context, 'กรุณากรอกจำนวนวันงาน');
+                      } else if (userFile == null) {
+                        showWraningSnakeBar(context, 'กรุณาถ่ายรูป Festival Diary');
+                      } else {
+                        Fest fest = Fest(
+                          festName: festNameCtrl.text.trim(),
+                          festDetail: festDetailCtrl.text.trim(),
+                          festState: festStateCtrl.text.trim(),
+                          festCost: festCostCtrl.text.trim(),
+                          festNumDay: int.parse(festDayCtrl.text.trim()),
+                          userId: widget.userId,
+                        );
+                        //ส่งข้อมูลผ่าน API ไปบันทึกลง DB
+                        if (await FestAPI().insertFest(fest, festFile)) {
+                          showCompletegSnakeBar(
+                            context,
+                            'ลงทะเบียนเรียบร้อยแล้ว',
+                          );
+                          //แล้วก็เปิดกลับไปหน้า LoginUI()
+                          Navigator.pop(context);
+                        } else {
+                          showCompletegSnakeBar(
+                            context,
+                            'ลงทะเบียนไม่สำเร็จ',
+                          );
+                        }
+                      }
+                    },
                     child: Text(
                       'บันทึกข้อมูล',
                       style: TextStyle(
@@ -273,3 +361,5 @@ class _AddFestUIState extends State<AddFestUI> {
     );
   }
 }
+
+
